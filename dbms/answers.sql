@@ -64,31 +64,23 @@ where me.earn_timestamp > DATE_SUB(now(), INTERVAL 10 DAY);
 on md.acct_number = md1.acct_number and md.join_date = md1.join_date;
     
 
-select * from member_details where NOT EXISTS (SELECT acct_number, count(acct_number)                       
+select * from member_details where NOT EXISTS (SELECT acct_number, join_date, count(acct_number)                       
 FROM   member_details    
-GROUP BY acct_number             
+GROUP BY acct_number, join_date           
 HAVING COUNT(acct_number) = 1);
 
+
+
+
+SELECT acct_number, join_date, COUNT(*)
+FROM member_details
+GROUP BY acct_number, join_date
+HAVING COUNT(*) > 1;
+
+
+SELECT  acct_number, join_date FROM member_details m1 WHERE NOT EXISTS (SELECT NULL FROM member_details m2 WHERE
+m1.acct_number = m2.acct_number and m1.join_date = m2.join_date);
         
-
-
-
-
-
-
-
-
-
-        
-
-
-
-
-
-
-         
-
-
 
 /*
 1. Return a list of account numbers and the associated earn details, for
