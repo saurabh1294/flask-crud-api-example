@@ -60,27 +60,30 @@ where me.earn_timestamp > DATE_SUB(now(), INTERVAL 10 DAY);
 
 5. Select distinct * from member_earn where earn_value in (select MAX(earn_value) from member_earn);
 
-6. SELECT * from member_details md join (select acct_number, join_date from member_details group by acct_number, join_date having count(*) > 1) md1
-on md.acct_number = md1.acct_number and md.join_date = md1.join_date;
-    
-
-select * from member_details where NOT EXISTS (SELECT acct_number, join_date, count(acct_number)                       
-FROM   member_details    
-GROUP BY acct_number, join_date           
-HAVING COUNT(acct_number) = 1);
+6.  DELETE from (SELECT * from member_details md join (select acct_number as ACCT_NUMBER_DUP from member_details group by ACCT_NUMBER_DUP having count(*) > 1) md1 on 
+md.acct_number = md1.ACCT_NUMBER_DUP order by join_date ASC);
 
 
 
+CREATE VIEW member_temp as (SELECT * from member_details md join (select acct_number as ACCT_NUMBER_DUP from member_details group by ACCT_NUMBER_DUP having count(*) > 1) md1 on 
+md.acct_number = md1.ACCT_NUMBER_DUP order by join_date ASC);
 
-SELECT acct_number, join_date, COUNT(*)
-FROM member_details
-GROUP BY acct_number, join_date
-HAVING COUNT(*) > 1;
+DELETE md from member_details md
+INNER JOIN (SELECT * from member_details md join (select acct_number as ACCT_NUMBER_DUP from member_details group by ACCT_NUMBER_DUP having count(*) > 1) md1 on 
+md.acct_number = md1.ACCT_NUMBER_DUP order by join_date ASC) mt WHERE mt.acct_number = md.acct_number AND mt.join_date = md.join_date;
 
 
-SELECT  acct_number, join_date FROM member_details m1 WHERE NOT EXISTS (SELECT NULL FROM member_details m2 WHERE
-m1.acct_number = m2.acct_number and m1.join_date = m2.join_date);
-        
+select distinct count(*) from (
+    SELECT * from member_details md join (select acct_number as ACCT_NUMBER_DUP from member_details group by ACCT_NUMBER_DUP having count(*) > 1) md1 on 
+md.acct_number = md1.ACCT_NUMBER_DUP order by join_date ASC
+) mt;
+
+/* Note:-  The query below gives all duplicate account numbers with join_dates sorted in ASC order, next job is to loop through member_details via cursor 
+and delete all matching records by acct_number and join_date except the first one in the group for each duplicate account number */
+
+SELECT * from member_details md join (select acct_number as ACCT_NUMBER_DUP from member_details group by ACCT_NUMBER_DUP having count(*) > 1) md1 on 
+md.acct_number = md1.ACCT_NUMBER_DUP order by join_date ASC 
+
 
 /*
 1. Return a list of account numbers and the associated earn details, for
